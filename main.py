@@ -6,6 +6,7 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import StaleElementReferenceException
 from datetime import datetime
 import time
@@ -79,10 +80,12 @@ def main():
         actions = ActionChains(driver)
         actions.double_click(element).perform()
 
+        ### Check if any alert popup appear ###
 
-        is_new_appointment = False
 
-        while is_new_appointment == False:
+        got_new_appointment = False
+
+        while got_new_appointment == False:
             # Get first availability date
             first_availability = get_first_availability(driver, ignored_exceptions)
            
@@ -91,11 +94,11 @@ def main():
                 driver.find_element(By.CSS_SELECTOR, ".ui-disponibilita-action-buttons > button[id='verifica_conferma_appuntamenti']").click()
 
                 # Get appointment info
-                new_address, new_date = get_new_appointment_info(driver, ignored_exceptions)
+                new_address, new_date, alert = get_new_appointment_info(driver, ignored_exceptions)
                 
-                print("È disponibile il seguente appuntamento:")
-                print(new_date)
-                print(new_address)
+                print("È disponibile un appuntamento per il giorno", new_date)
+                print("presso", new_address)
+                print("È presente la seguente nota", alert)
 
                 risposta = input("Vuoi confermare il nuovo appuntamento? Y/N ")
 
@@ -115,7 +118,7 @@ def main():
                 risposta = input("Vuoi continuare la ricerca? Y/N ")
 
                 if risposta == "N":
-                    is_new_appointment = True
+                    got_new_appointment = True
                 else:
                     # Close modal 
                     driver.find_element(By.CSS_SELECTOR, ".modal-footer > .btn-default[ng-click^='verificaPrenotazioneCtrl.annulla']").click()
@@ -133,7 +136,7 @@ def main():
 
         
         # Close the browser and end script
-        print("Grazie per aver combattuto insieme la sanità privata <3")
+        print("Grazie per aver combattuto insieme contro la sanità privata <3")
         driver.quit()
         sys.exit()
 
@@ -206,10 +209,22 @@ def get_current_appointment(driver, ignored_exceptions, prescription):
 
 
 def get_first_availability(driver, ignored_exceptions):
+
+    # Wait for spinner to appear and disappear
+    try:
+        # wait for loading element to appear
+        WebDriverWait(driver, 10
+            ).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".spinner-container")))
+
+        # then wait for the element to disappear
+        WebDriverWait(driver, 60
+            ).until_not(EC.presence_of_element_located((By.CSS_SELECTOR, ".spinner-container")))
+
+    except TimeoutException:
+        # if timeout exception was raised
+        pass 
+
     # Get appointment list
-    ### Non deve leggere il contenuto della pagina se c'è ancora lo spinner/loader ###
-    # WebDriverWait(driver, 60, ignored_exceptions=ignored_exceptions)\
-    #     .until(EC.visibility_of_element_located((By.CSS_SELECTOR, ".spinner-container")))
     app_list = WebDriverWait(driver, 60, ignored_exceptions=ignored_exceptions)\
         .until(EC.visibility_of_element_located((By.CSS_SELECTOR, ".lista-appuntamenti")))
 
@@ -224,7 +239,8 @@ def get_new_appointment_info(driver, ignored_exceptions):
         .until(EC.presence_of_element_located((By.CSS_SELECTOR, ".dati-appuntamento-summary")))
     new_address = appointment_data.find_element(By.XPATH, "div[3]/div[2]/span").text
     new_date = appointment_data.find_element(By.XPATH, "div[1]/div[2]/span").text
-    return new_address, new_date
+    alert = driver.find_element(By.CSS_SELECTOR, ".note-prepazione-descrizione > p").text
+    return new_address, new_date, alert
 
 
 if __name__ == "__main__":
