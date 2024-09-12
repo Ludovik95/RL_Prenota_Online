@@ -14,12 +14,105 @@ import sys
 from dataObjects import Patient, Prescription, Appointment, SearchPreferences
 import data_file
 
+def ask_data():
+    codice_fiscale = input("Inserisci il codice fiscale: ")
+
+    tessera_sanitaria = input("Inserisci le ultime 5 cifre della tessera sanitaria: ")
+    prescription_n = input("Inserisci il codice della ricetta: ")
+    
+    provincia = input("Inserisci la provincia in cui vuoi la visita: ").upper()
+    start_date = input("Inserisci la prima data da cui vuoi la visita (gg/mm/aaaa): ")
+    end_date = input("Inserisci la data entro cui vuoi la visita (gg/mm/aaaa): ")
+    REFRESH_FREQUENCY = int(input("Inserisci ogni quanti secondi riavviare la ricerca se non è stata trovata una data: "))
+
+    print("\n")
+
+    patient = Patient(codice_fiscale, tessera_sanitaria)
+    prescription = Prescription(prescription_n, patient)
+    search_preferences = SearchPreferences(provincia, start_date, end_date, REFRESH_FREQUENCY)
+
+    return prescription, search_preferences
+
+
+def get_data_from_file():
+    patient = Patient(data_file.codice_fiscale, data_file.tessera_sanitaria)
+    prescription = Prescription(data_file.prescription_n, patient)
+    search_preferences = SearchPreferences(data_file.provincia, data_file.start_date, data_file.end_date,data_file.refresh_frequency)
+
+    return prescription, search_preferences
+
+
+def use_chrome():
+    # initialize Chrome webdriver
+    options = Options()
+    options.add_argument("--log-level=1")
+    # keep the browser open after the process has ended, so long as the quit command is not sent to the driver.
+    options.add_experimental_option("detach", True)
+    driver = webdriver.Chrome(options=options)
+    return driver
+
+
+def use_firefox():
+    # initialize Firefox webdriver
+    driver = webdriver.Firefox()
+    return driver
+
+
+def get_current_appointment(driver, ignored_exceptions, prescription):
+    # Get the element with all info
+    appointment_data = WebDriverWait(driver, 20, ignored_exceptions=ignored_exceptions)\
+        .until(EC.presence_of_element_located((By.CSS_SELECTOR, ".dati-appuntamento-summary")))
+    
+    # Get appointment date and address
+    app_date_string = appointment_data.find_element(By.XPATH, "div[6]/div[2]/span").text
+    address = appointment_data.find_element(By.XPATH, "div[4]/div[2]/span").text
+    
+    return Appointment(app_date_string, address, prescription)
+
+
+def wait_loading(driver):
+    # Wait for spinner to appear and disappear
+    try:
+        # wait for loading element to appear
+        WebDriverWait(driver, 10
+            ).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".spinner-container")))
+
+        # then wait for the element to disappear
+        WebDriverWait(driver, 120
+            ).until_not(EC.presence_of_element_located((By.CSS_SELECTOR, ".spinner-container")))
+
+    except TimeoutException:
+        # if timeout exception was raised
+        pass 
+
+
+def get_first_availability(driver, ignored_exceptions):
+
+    # Get appointment list
+    app_list = WebDriverWait(driver, 60, ignored_exceptions=ignored_exceptions)\
+        .until(EC.visibility_of_element_located((By.CSS_SELECTOR, ".lista-appuntamenti")))
+
+    # Get first availability date
+    first_availability_string = driver.find_element(By.XPATH, "//ul/li/div/div/div[1]/div[2]/span").text
+    first_availability = datetime.strptime(first_availability_string, "%d/%m/%Y - %H:%M")
+    return first_availability
+
+
+def get_new_appointment_info(driver, ignored_exceptions):
+    appointment_data = WebDriverWait(driver, 20, ignored_exceptions=ignored_exceptions)\
+        .until(EC.presence_of_element_located((By.CSS_SELECTOR, ".dati-appuntamento-summary")))
+    new_address = appointment_data.find_element(By.XPATH, "div[3]/div[2]/span").text
+    new_date = appointment_data.find_element(By.XPATH, "div[1]/div[2]/span").text
+    alert = driver.find_element(By.CSS_SELECTOR, ".note-prepazione-descrizione > p").text
+    return new_address, new_date, alert
+
+
 def main():
     print("ciao :) \n")
 
     # Ask user information that will be used during search
-    prescription, search_preferences = ask_data()
-    # prescription, search_preferences = get_data()
+    # prescription, search_preferences = ask_data()
+    prescription, search_preferences = get_data_from_file()
 
 
     # Ask which browser to use
@@ -53,6 +146,8 @@ def main():
         current_appointment = get_current_appointment(driver, ignored_exceptions, prescription)
         print("L'appuntamento attuale è fissato per il giorno", current_appointment.date)
         print("presso", current_appointment.address)
+        print("\n")
+
 
         # Click on edit appointment 
         element = driver.find_element(By.CSS_SELECTOR, "button[btn-riprenota='']")
@@ -98,7 +193,8 @@ def main():
                 
                 print("È disponibile un appuntamento per il giorno", new_date)
                 print("presso", new_address)
-                print("È presente la seguente nota", alert)
+                print("È presente la seguente nota: \n", alert, "\n")
+
 
                 risposta = input("Vuoi confermare il nuovo appuntamento? Y/N ")
 
@@ -128,11 +224,17 @@ def main():
             time.sleep(search_preferences.refresh_frequency)
 
             # Click on edit search button
-            driver.find_element(By.CSS_SELECTOR, "button[id='modifica-ricerca-info-testata']").click()
+            element = driver.find_element(By.CSS_SELECTOR, "button[id='modifica-ricerca-info-testata']")
+            actions = ActionChains(driver)
+            actions.move_to_element(element).click(element).perform()
 
             # Confirm modal and search again
-            WebDriverWait(driver, 20, ignored_exceptions=ignored_exceptions)\
-                .until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".modal-footer > .btn-primary[ng-click^='doveQuandoModalCtrl.aggiorna']"))).click()
+            element = WebDriverWait(driver, 20, ignored_exceptions=ignored_exceptions)\
+                .until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".modal-footer > .btn-primary[ng-click^='doveQuandoModalCtrl.aggiorna']")))
+            actions = ActionChains(driver)
+            actions.move_to_element(element).click(element).perform()
+
+            wait_loading(driver)
 
         
         # Close the browser and end script
@@ -152,95 +254,6 @@ def main():
 #    driver.find_element(By.CSS_SELECTOR, "#sedi .ui-select-search").click()
 #    driver.find_element(By.CSS_SELECTOR, "#ui-select-choices-row-1-0 .ng-binding").click()
 #
-
-
-def ask_data():
-    codice_fiscale = input("Inserisci il codice fiscale: ")
-
-    tessera_sanitaria = input("Inserisci le ultime 5 cifre della tessera sanitaria: ")
-    prescription_n = input("Inserisci il codice NUMERICO della ricetta: ")
-    
-    provincia = input("Inserisci la provincia in cui vuoi la visita: ")
-    start_date = input("Inserisci la prima data da cui vuoi la visita (gg/mm/aaaa): ")
-    end_date = input("Inserisci la data entro cui vuoi la visita (gg/mm/aaaa): ")
-    refresh_frequency = int(input("Inserisci ogni quanti secondi riavviare la ricerca se non è stata trovata una data: "))
-
-    patient = Patient(codice_fiscale, tessera_sanitaria)
-    prescription = Prescription(prescription_n, patient)
-    search_preferences = SearchPreferences(provincia, start_date, end_date, refresh_frequency)
-
-    return prescription, search_preferences
-
-
-def get_data():
-    patient = Patient(data_file.codice_fiscale, data_file.tessera_sanitaria)
-    prescription = Prescription(data_file.prescription_n, patient)
-    search_preferences = SearchPreferences(data_file.provincia, data_file.start_date, data_file.end_date,data_file.refresh_frequency)
-
-    return prescription, search_preferences
-
-
-def use_chrome():
-    # initialize Chrome webdriver
-    options = Options()
-    options.add_argument("--log-level=1")
-    # keep the browser open after the process has ended, so long as the quit command is not sent to the driver.
-    options.add_experimental_option("detach", True)
-    driver = webdriver.Chrome(options=options)
-    return driver
-
-
-def use_firefox():
-    # initialize Firefox webdriver
-    driver = webdriver.Firefox()
-    return driver
-
-
-def get_current_appointment(driver, ignored_exceptions, prescription):
-    # Get the element with all info
-    appointment_data = WebDriverWait(driver, 20, ignored_exceptions=ignored_exceptions)\
-        .until(EC.presence_of_element_located((By.CSS_SELECTOR, ".dati-appuntamento-summary")))
-    
-    # Get appointment date and address
-    app_date_string = appointment_data.find_element(By.XPATH, "div[6]/div[2]/span").text
-    address = appointment_data.find_element(By.XPATH, "div[4]/div[2]/span").text
-    
-    return Appointment(app_date_string, address, prescription)
-
-
-def get_first_availability(driver, ignored_exceptions):
-
-    # Wait for spinner to appear and disappear
-    try:
-        # wait for loading element to appear
-        WebDriverWait(driver, 10
-            ).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".spinner-container")))
-
-        # then wait for the element to disappear
-        WebDriverWait(driver, 60
-            ).until_not(EC.presence_of_element_located((By.CSS_SELECTOR, ".spinner-container")))
-
-    except TimeoutException:
-        # if timeout exception was raised
-        pass 
-
-    # Get appointment list
-    app_list = WebDriverWait(driver, 60, ignored_exceptions=ignored_exceptions)\
-        .until(EC.visibility_of_element_located((By.CSS_SELECTOR, ".lista-appuntamenti")))
-
-    # Get first availability date
-    first_availability_string = driver.find_element(By.XPATH, "//ul/li/div/div/div[1]/div[2]/span").text
-    first_availability = datetime.strptime(first_availability_string, "%d/%m/%Y - %H:%M")
-    return first_availability
-
-
-def get_new_appointment_info(driver, ignored_exceptions):
-    appointment_data = WebDriverWait(driver, 20, ignored_exceptions=ignored_exceptions)\
-        .until(EC.presence_of_element_located((By.CSS_SELECTOR, ".dati-appuntamento-summary")))
-    new_address = appointment_data.find_element(By.XPATH, "div[3]/div[2]/span").text
-    new_date = appointment_data.find_element(By.XPATH, "div[1]/div[2]/span").text
-    alert = driver.find_element(By.CSS_SELECTOR, ".note-prepazione-descrizione > p").text
-    return new_address, new_date, alert
 
 
 if __name__ == "__main__":
