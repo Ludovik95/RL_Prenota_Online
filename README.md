@@ -13,10 +13,16 @@ I dati rimangono nel proprio device e non vengono trasmessi a terzi se non duran
 
 ## Installazione dei prerequisiti
 Per utilizzare RL Prenota Online bisogna installare sul proprio computer Python e Selenium.
-Una volta installato Python e pip, basterà aprire il prompt dei comandi e digitare `pip install -U selenium`.
+Una volta installato Python e pip, basterà aprire il prompt dei comandi e digitare 
+```
+pip install -U selenium
+```
 
 
 ## Come usarlo
-Apri un prompt dei comandi nella cartella principale e avvia il codice digitando `py main.py`. 
-Ti verranno chiesti il codice fiscale, gli ultimi 5 numeri della tessera sanitaria e il codice della ricetta (solo numeri, senza inserire lettere). 
+Apri un prompt dei comandi nella cartella principale e avvia il codice digitando 
+```
+py main.py
+```
+Ti verranno chiesti il codice fiscale, gli ultimi 5 numeri della tessera sanitaria e il codice della ricetta (15 caratteri alfanumerici se ricetta elettronica, 15 cifre se ricetta rossa). 
 A quel punto verranno cercate nuove disponibilità per la visita nella provincia e dalla data inserita. In caso positivo, sempre sul terminale verrà chiesta la conferma di modifica dell'appuntamento.
