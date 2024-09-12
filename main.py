@@ -20,7 +20,8 @@ def ask_data():
     tessera_sanitaria = input("Inserisci le ultime 5 cifre della tessera sanitaria: ")
     prescription_n = input("Inserisci il codice della ricetta: ")
     
-    provincia = input("Inserisci la provincia in cui vuoi la visita: ").upper()
+    print ("Inserisci la provincia in cui vuoi la visita tra le seguenti: BERGAMO, BRESCIA, COMO, CREMONA, LECCO, LODI, MANTOVA, MILANO CITTA', MILANO PROVINCIA, MONZA E DELLA BRIANZA, PAVIA, SONDRIO, VARESE")
+    provincia = input("").upper()
     start_date = input("Inserisci la prima data da cui vuoi la visita (gg/mm/aaaa): ")
     end_date = input("Inserisci la data entro cui vuoi la visita (gg/mm/aaaa): ")
     REFRESH_FREQUENCY = int(input("Inserisci ogni quanti secondi riavviare la ricerca se non è stata trovata una data: "))
@@ -111,8 +112,8 @@ def main():
     print("ciao :) \n")
 
     # Ask user information that will be used during search
-    # prescription, search_preferences = ask_data()
-    prescription, search_preferences = get_data_from_file()
+    prescription, search_preferences = ask_data()
+    # prescription, search_preferences = get_data_from_file()
 
 
     # Ask which browser to use
