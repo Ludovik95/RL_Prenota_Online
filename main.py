@@ -13,6 +13,7 @@ import time
 import sys
 from dataObjects import Patient, Prescription, Appointment, SearchPreferences
 import data_file
+from os import path
 
 def ask_data():
     codice_fiscale = input("Inserisci il codice fiscale: ")
@@ -104,7 +105,7 @@ def get_new_appointment_info(driver, ignored_exceptions):
         .until(EC.presence_of_element_located((By.CSS_SELECTOR, ".dati-appuntamento-summary")))
     new_address = appointment_data.find_element(By.XPATH, "div[3]/div[2]/span").text
     new_date = appointment_data.find_element(By.XPATH, "div[1]/div[2]/span").text
-    alert = driver.find_element(By.CSS_SELECTOR, ".note-prepazione-descrizione > p").text
+    alert = driver.find_elements(By.CSS_SELECTOR, ".note-prepazione-descrizione > p")
     return new_address, new_date, alert
 
 
@@ -112,20 +113,26 @@ def main():
     print("ciao :) \n")
 
     # Ask user information that will be used during search
-    prescription, search_preferences = ask_data()
-    # prescription, search_preferences = get_data_from_file()
-
+    if path.isfile("data_file.py"):
+        if input("Scrivi 1 per inserire i dati a mano oppure 2 per utilizzare quelli nel file 'data_file.py': ") == "2":
+            prescription, search_preferences = get_data_from_file()
+        else:
+            prescription, search_preferences = ask_data()  
+    else:
+        prescription, search_preferences = ask_data()
+    
 
     # Ask which browser to use
-    driver = use_chrome() if input("Scrivi 1 per usare Chrome oppure 2 per Firefox: ") == 1 else use_firefox()
-    driver.set_window_size(1400,800)
+    driver = use_chrome() if input("Scrivi 1 per usare Chrome oppure 2 per Firefox: ") == "1" else use_firefox()
+    driver.set_window_size(1400,1000)
 
     # Open link Prenota Online
     driver.get("https://prenotasalute.regione.lombardia.it/prenotaonline/")
          
+
     try:
         # Go to Gestione prenotazioni
-        ignored_exceptions = (NoSuchElementException,StaleElementReferenceException,)
+        ignored_exceptions = (NoSuchElementException,StaleElementReferenceException)
         element = WebDriverWait(driver, 20, ignored_exceptions=ignored_exceptions)\
             .until(EC.presence_of_element_located((By.CSS_SELECTOR, "a[ui-sref='prenota-ricetta']")))
         actions = ActionChains(driver)
@@ -179,9 +186,9 @@ def main():
         ### Check if any alert popup appear ###
 
 
-        got_new_appointment = False
+        stop_searching = False
 
-        while got_new_appointment == False:
+        while stop_searching == False:
             # Get first availability date
             first_availability = get_first_availability(driver, ignored_exceptions)
            
@@ -194,7 +201,10 @@ def main():
                 
                 print("È disponibile un appuntamento per il giorno", new_date)
                 print("presso", new_address)
-                print("È presente la seguente nota: \n", alert, "\n")
+                if alert:
+                    print("Sono presenti le seguenti note: \n")
+                    for a in alert:
+                        print(a.text, "\n")
 
 
                 risposta = input("Vuoi confermare il nuovo appuntamento? Y/N ")
@@ -215,7 +225,8 @@ def main():
                 risposta = input("Vuoi continuare la ricerca? Y/N ")
 
                 if risposta == "N":
-                    got_new_appointment = True
+                    stop_searching = True
+                    break
                 else:
                     # Close modal 
                     driver.find_element(By.CSS_SELECTOR, ".modal-footer > .btn-default[ng-click^='verificaPrenotazioneCtrl.annulla']").click()

@@ -1,9 +1,6 @@
 ### ISTRUZIONI ###
 # Per utilizzare questo file al posto dell'inserimento manuale tramite prompt dei comandi, 
 # sostituisci i valori delle variabili sotto e rinomina il file in 'data_file.py'.
-#
-# Nel file main.py, metti in commento 'prescription, search_preferences = ask_data()'
-# e togli dai commenti 'prescription, search_preferences = get_data()'.
 
 
 codice_fiscale = "AAAAAA00A00A000A"     # codice fiscale associato alla ricetta
