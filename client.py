@@ -153,7 +153,7 @@ class Client:
 					self.token = data["result"]
 					self.session.headers["X-Prenota-Online-Token"] = self.token
 			except json.JSONDecodeError:
-				print("Failed to decode JSON response.")
+				print("Failed to get the token. Response content is not valid JSON.")
 
 
 	def _generate_request_data(self, destination: str, arguments: dict):
@@ -179,11 +179,12 @@ class Client:
 			verify=False
         )
 
-		logging.debug(data)
 		logging.debug(response.status_code)
-		logging.debug(response.text)
+		logging.debug(response.json().get("jsonBusinessArg0")) if response.json().get("jsonBusinessArg0") else logging.debug(response.json())
+		logging.debug(response.json().get("exception")) if response.json().get("exception") else None
 
 		return response
+
 
 	def _debug_conf(self, debug: bool):
 
