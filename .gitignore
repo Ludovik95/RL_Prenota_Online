@@ -1,6 +1,5 @@
-/OLD
 /__pycache__
-/PROVE
-/DRIVER
-data_file.py
-geckodriver.log
+.venv
+.docs
+.tests
+test.py
