@@ -39,8 +39,6 @@ class Client:
         codice_fiscale: str,
         codice_tessera: str):
 
-		self.session.headers["X-Prenota-Online-Token"] += " | {} | {}".format(codice_fiscale, codice_tessera)
-
 		response = self._send_request(
 			self._generate_request_data(
 				destination = "pgpcitt_login_gp_prv",
@@ -52,6 +50,8 @@ class Client:
 				}
 			)
 		)
+
+		self.session.headers["X-Prenota-Online-Token"] += " | {} | {}".format(codice_fiscale, codice_tessera)
 
 		return response
 
