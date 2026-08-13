@@ -21,60 +21,65 @@ class Prescription:
 
 	def __init__(
 			self,
-			datiRispostaMEF: str,
-			data: str,
-			iup: str,
-			iurp: str,
-			cittadino: dict,
-			emessaIl: str,
-			scadenzaIl: str,
-			tipo: str,
-			modulo: dict,
-			flagRe:str,
-			priorita: str,
-			urgenza: str,
-			tipoPrestazione: str,
-			stato: dict,
-			quesitoDiagnostico: dict,
-			note: str,
-			esenzione: dict,
-			flagEsenzionePatologia: str,
-			flagAltreEsenzioni: str,
-			flagSuggerita: str,
-			brancaSpecialistica: str,
-			provenienzaPrescrizione: str,
-			prescrittore: dict,
-			nrPrestazioni: int,
-			prestazioni: list,
-			appuntamenti: dict
+			codice_fiscale: str,
+			id_ricetta: str
 			):
 		
-		self.datiRispostaMEF = datiRispostaMEF
-		self.data = data
-		self.iup = iup
-		self.iurp = iurp
-		self.cittadino = cittadino
-		self.emessaIl = emessaIl
-		self.scadenzaIl = scadenzaIl
-		self.tipo = tipo
-		self.modulo = modulo
-		self.flagRe = flagRe
-		self.priorita = priorita
-		self.urgenza = urgenza
-		self.tipoPrestazione = tipoPrestazione
-		self.stato = stato
-		self.quesitoDiagnostico = quesitoDiagnostico
-		self.note = note
-		self.esenzione = esenzione
-		self.flagEsenzionePatologia = flagEsenzionePatologia
-		self.flagAltreEsenzioni = flagAltreEsenzioni
-		self.flagSuggerita = flagSuggerita
-		self.brancaSpecialistica = brancaSpecialistica
-		self.provenienzaPrescrizione = provenienzaPrescrizione
-		self.prescrittore = prescrittore
-		self.nrPrestazioni = nrPrestazioni
-		self.prestazioni = prestazioni
-		self.appuntamenti = appuntamenti
+		self.datiRispostaMEF = None
+		self.data = None
+		self.iup = None
+		self.iurp = None
+		self.cittadino = {
+            "codiceFiscale": codice_fiscale
+        }
+		self.emessaIl = None
+		self.scadenzaIl = None
+		self.tipo = None
+		self.modulo = { 
+            "id": id_ricetta,
+            "tipo": None
+        }
+		self.flagRe = None
+		self.priorita = None
+		self.urgenza = None
+		self.tipoPrestazione = None
+		self.stato = {
+            "codice": None,
+            "descrizione": None,
+            "data": None
+        }
+		self.quesitoDiagnostico = {
+            "codice": None,
+            "descrizione": None,
+            "id": None,
+            "operatoreLogico": None
+        }
+		self.note = None
+		self.esenzione = {
+            "cdNazionale": None,
+            "cdStampato": None,
+            "codice": None,
+            "descrizione": None
+        }
+		self.flagEsenzionePatologia = None
+		self.flagAltreEsenzioni = None
+		self.flagSuggerita = None
+		self.brancaSpecialistica = None
+		self.provenienzaPrescrizione = None
+		self.prescrittore = {
+            "codiceFiscale": None,
+            "codiceRegionale": None,
+            "nome": None,
+            "cognome": None
+        }
+		self.nrPrestazioni = None
+		self.prestazioni = []
+		self.appuntamenti = {
+            "singoli": [],
+            "combinati": [],
+            "associati": [],
+            "rpDifferite": []
+        }
 
 class Appointment:
 
