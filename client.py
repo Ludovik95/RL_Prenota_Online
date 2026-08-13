@@ -112,6 +112,26 @@ class Client:
 		logging.debug("step 04 - check prescription")
 
 
+	def get_payment(
+		self,
+		codice_fiscale: str,
+		iup: str,
+		iurp: str):
+
+		response = self._send_request(
+			self._generate_request_data(
+				destination = "pgpcitt_ricerca_pagamento",
+				arguments = {
+					"codiceFiscale": codice_fiscale,
+					"iup": iup,
+					"iurp": iurp
+				}
+			)
+		)
+
+		return response
+
+
 	def get_availability(
         self,
         codice_fiscale: str,
