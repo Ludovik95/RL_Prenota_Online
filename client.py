@@ -1,9 +1,12 @@
 import json
+import logging
 from curl_cffi import requests
 
 class Client:
 
-	def __init__(self):
+	def __init__(self, debug: bool = False):
+
+		self._debug_conf(debug)
 
 		self.session = requests.Session(headers={
 			"Accept": "application/json, text/plain, */*",
@@ -106,7 +109,7 @@ class Client:
 	def check_prescription(
         self):
 
-		print("step 04 - check prescription")
+		logging.debug("step 04 - check prescription")
 
 
 	def get_availability(
@@ -176,8 +179,20 @@ class Client:
 			verify=False
         )
 
-		print(data, "\n")
-		print(response.status_code, "\n")
-		print(response.text, "\n")
+		logging.debug(data)
+		logging.debug(response.status_code)
+		logging.debug(response.text)
 
 		return response
+
+	def _debug_conf(self, debug: bool):
+
+		logging.basicConfig(
+			filename=".tests/app.log",
+			encoding="utf-8",
+			filemode="a",
+			format="{asctime} - {levelname} - {message}",
+			style="{",
+			datefmt="%Y-%m-%d %H:%M",
+			level=logging.DEBUG if debug else logging.INFO
+		)
