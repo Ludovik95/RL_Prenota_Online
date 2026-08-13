@@ -2,6 +2,8 @@ import json
 import logging
 from curl_cffi import requests
 
+from objects import Prescription
+
 class Client:
 
 	def __init__(self, debug: bool = False):
@@ -135,22 +137,56 @@ class Client:
 	def get_availability(
         self,
         codice_fiscale: str,
-        id_ricetta: str):
+        prescription: Prescription):
 
 		response = self._send_request(
 			self._generate_request_data(
-				destination = "pgpcitt_ricerca_ricetta",
+				destination = "pgpcitt_ricerca_disponibilita",
 				arguments = {
 					"codiceFiscale": codice_fiscale,
-					"iup": None,
-					"iurp": None,
-					"nre": id_ricetta,
-					"rur": None,
-					"periodo": { "dal": None, "al": None },
-					"flagFlussoPostoInCoda": "N",
-					"flagIncludiNonPrenotabili": "N",
-					"codicePrestazione": "",
-					"categoriaPrestazione": ""
+					"zona": {
+						"descrizione": None,
+						"codiceProvincia": None,
+						"codiceComune": None,
+						"codice": None,
+						"abilitazionePiuPiu": None,
+						"abilitazioneNre": None
+					},
+					"ricetta": {
+						**prescription.__dict__,
+					    "appuntamentiUnificati": None,
+					    "daSbloccare": False
+					    },
+					"tipoPrestazione": None,
+					"presidi": [],
+					"aziende": [],
+					"recapiti": {
+						"telefono": None,
+						"cellulare": None,
+						"email": None
+					},
+					"vincoliTemporali": {
+						"dal": None,
+						"al": None,
+						"lunedi": "S",
+						"martedi": "S",
+						"mercoledi": "S",
+						"giovedi": "S",
+						"venerdi": "S",
+						"sabato": "S",
+						"domenica": "S",
+						"mattina": "S",
+						"pomeriggio": "S"
+					},
+					"caricaRequestRicercaAgende": "N",
+					"minDal": None,
+					"ats": None,
+					"tipoNegoziazione": None,
+					"regimeErogazione": None,
+					"risorsa": None,
+					"codiceProvincia": None,
+					"codiceComune": None,
+					"codiceStruttura": None
 				}
 			)
 		)
