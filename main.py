@@ -9,10 +9,16 @@ def main(args):
     codice_fiscale = input("Inserisci il codice fiscale: ")
     codice_tessera = input("Inserisci le ultime 5 cifre della tessera sanitaria: ")
     prescription_n = input("Inserisci il codice della ricetta: ")
+    provincia = input("Inserisci la provincia dove cercare l'appuntamento: ")
 
-    patient = Patient(codice_fiscale,codice_tessera)
+ 
+    prescription = Prescription(codice_fiscale, prescription_n)
 
-    client.login(patient.codice_fiscale, patient.codice_tessera)
+    patient = client.login(codice_fiscale, codice_tessera)
+    client.get_appointment(patient.codice_fiscale, prescription.modulo["id"])
+    client.get_prescription(patient.codice_fiscale, prescription.modulo["id"])
+    client.get_availability(patient.codice_fiscale, prescription, provincia)
+
 
 
 if __name__ == "__main__":

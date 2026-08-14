@@ -2,7 +2,7 @@ import json
 import logging
 from curl_cffi import requests
 
-from objects import Prescription
+from objects import Patient, Prescription
 
 class Client:
 
@@ -41,7 +41,7 @@ class Client:
         codice_fiscale: str,
         codice_tessera: str):
 
-		response = self._send_request(
+		result = self._send_request(
 			self._generate_request_data(
 				destination = "pgpcitt_login_gp_prv",
 				arguments = {
@@ -55,7 +55,22 @@ class Client:
 
 		self.session.headers["X-Prenota-Online-Token"] += " | {} | {}".format(codice_fiscale, codice_tessera)
 
-		return response
+		patient_data = result.get("cittadino")
+		if patient_data:
+			patient = Patient(codice_fiscale, codice_tessera)
+			patient.cognome = patient_data.get("cognome")
+			patient.nome = patient_data.get("nome")
+			patient.sesso = patient_data.get("sesso")
+			patient.nascita = patient_data.get("nascita")
+			patient.recapiti["telefono"] = patient_data.get("recapiti", {}).get("telefono")
+			patient.recapiti["cellulare"] = patient_data.get("recapiti", {}).get("cellulare")
+			patient.recapiti["email"] = patient_data.get("recapiti", {}).get("email")
+			logging.debug(f"Logged in successfully for patient: {patient.nome} {patient.cognome}")
+			return patient
+		else:
+			logging.error("Failed to retrieve patient data after login.")
+
+		return patient
 
 
 	def get_appointment(
@@ -63,7 +78,7 @@ class Client:
         codice_fiscale: str,
         id_ricetta: str):
 
-		response = self._send_request(
+		result = self._send_request(
 			self._generate_request_data(
 				destination = "pgpcitt_ricerca_appuntamento",
 				arguments = {
@@ -79,7 +94,7 @@ class Client:
 			)
 		)
 
-		return response
+		return result
 
 
 	def get_prescription(
@@ -87,7 +102,7 @@ class Client:
         codice_fiscale: str,
         id_ricetta: str):
 
-		response = self._send_request(
+		result = self._send_request(
 			self._generate_request_data(
 				destination = "pgpcitt_ricerca_ricetta",
 				arguments = {
@@ -105,7 +120,7 @@ class Client:
 			)
 		)
 
-		return response
+		return result
 
 
 	def check_prescription(
@@ -120,7 +135,7 @@ class Client:
 		iup: str,
 		iurp: str):
 
-		response = self._send_request(
+		result = self._send_request(
 			self._generate_request_data(
 				destination = "pgpcitt_ricerca_pagamento",
 				arguments = {
@@ -131,15 +146,16 @@ class Client:
 			)
 		)
 
-		return response
+		return result
 
 
 	def get_availability(
         self,
         codice_fiscale: str,
-        prescription: Prescription):
+        prescription: Prescription,
+		provincia: str):
 
-		response = self._send_request(
+		result = self._send_request(
 			self._generate_request_data(
 				destination = "pgpcitt_ricerca_disponibilita",
 				arguments = {
@@ -191,17 +207,18 @@ class Client:
 			)
 		)
 
-		return response
+		return result
 
 
 	def _get_token(self):
-		response = self._send_request(
+		result = self._send_request(
 			self._generate_request_data(
 				destination = "pgpcitt_genera_token",
 				arguments = {}
 			)
 		)
 
+		self.session.headers["X-Prenota-Online-Token"] = result
 		if response.status_code == 200:
 			try:
 				data = response.json()
@@ -235,11 +252,26 @@ class Client:
 			verify=False
         )
 
-		logging.debug(response.status_code)
-		logging.debug(response.json().get("jsonBusinessArg0")) if response.json().get("jsonBusinessArg0") else logging.debug(response.json())
-		logging.debug(response.json().get("exception")) if response.json().get("exception") else None
+		payload = response.json()
 
-		return response
+		result = payload.get("result")
+		if isinstance(result, str) and result.startswith("{"):
+			try:
+				result = json.loads(result)
+			except json.JSONDecodeError:
+				logging.error("Failed to decode JSON from result: %s", result)
+
+		warning = payload.get("warning")
+		error = payload.get("error")
+		exception = payload.get("exception")
+
+		logging.debug(response.status_code)
+		logging.debug(result) if result else logging.debug(response.json())
+		logging.debug(warning) if warning else None
+		logging.debug(error) if error else None
+		logging.debug(exception) if exception else None
+
+		return result
 
 
 	def _debug_conf(self, debug: bool):
