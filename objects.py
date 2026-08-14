@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+@dataclass
 class Patient:
 
     def __init__(
@@ -17,6 +19,7 @@ class Patient:
           "email": None
         }
 
+@dataclass
 class Prescription:
 
 	def __init__(
@@ -81,6 +84,7 @@ class Prescription:
             "rpDifferite": []
         }
 
+@dataclass
 class Appointment:
 
     def __init__(
