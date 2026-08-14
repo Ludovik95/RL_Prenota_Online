@@ -219,14 +219,35 @@ class Client:
 		)
 
 		self.session.headers["X-Prenota-Online-Token"] = result
-		if response.status_code == 200:
-			try:
-				data = response.json()
-				if "result" in data:
-					self.token = data["result"]
-					self.session.headers["X-Prenota-Online-Token"] = self.token
-			except json.JSONDecodeError:
-				print("Failed to get the token. Response content is not valid JSON.")
+
+
+	def _get_province_code(self, province_name: str):
+		result = self._send_request(
+			self._generate_request_data(
+				destination = "pgpcitt_ricerca_zona",
+				arguments = {}
+			)
+		)
+		
+		province_data = [
+			{"descrizione":"BERGAMO","codiceProvincia":"016","codiceComune":"%","abilitazionePiuPiu":"S","abilitazioneNre":"N"},
+			{"descrizione":"BRESCIA","codiceProvincia":"017","codiceComune":"%","abilitazionePiuPiu":"S","abilitazioneNre":"N"},
+			{"descrizione":"COMO","codiceProvincia":"013","codiceComune":"%","abilitazionePiuPiu":"S","abilitazioneNre":"N"},
+			{"descrizione":"CREMONA","codiceProvincia":"019","codiceComune":"%","abilitazionePiuPiu":"S","abilitazioneNre":"N"},
+			{"descrizione":"LECCO","codiceProvincia":"097","codiceComune":"%","abilitazionePiuPiu":"S","abilitazioneNre":"N"},
+			{"descrizione":"LODI","codiceProvincia":"098","codiceComune":"%","abilitazionePiuPiu":"S","abilitazioneNre":"N"},
+			{"descrizione":"MANTOVA","codiceProvincia":"020","codiceComune":"%","abilitazionePiuPiu":"S","abilitazioneNre":"N"},
+			{"descrizione":"MILANO CITTA'","codiceProvincia":"015","codiceComune":"146","abilitazionePiuPiu":"S","abilitazioneNre":"N"},
+			{"descrizione":"MILANO PROVINCIA","codiceProvincia":"015","codiceComune":"%","abilitazionePiuPiu":"S","abilitazioneNre":"N"},
+			{"descrizione":"MONZA E DELLA BRIANZA","codiceProvincia":"108","codiceComune":"%","abilitazionePiuPiu":"S","abilitazioneNre":"N"},
+			{"descrizione":"PAVIA","codiceProvincia":"018","codiceComune":"%","abilitazionePiuPiu":"S","abilitazioneNre":"N"},
+			{"descrizione":"SONDRIO","codiceProvincia":"014","codiceComune":"%","abilitazionePiuPiu":"S","abilitazioneNre":"N"},
+			{"descrizione":"VARESE","codiceProvincia":"012","codiceComune":"%","abilitazionePiuPiu":"S","abilitazioneNre":"N"}
+		]
+		for province in province_data:
+			if province["descrizione"] == province_name:
+				return province["codiceProvincia"]
+		return None
 
 
 	def _generate_request_data(self, destination: str, arguments: dict):
