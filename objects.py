@@ -22,67 +22,69 @@ class Patient:
 @dataclass
 class Prescription:
 
-	def __init__(
-			self,
-			codice_fiscale: str,
-			id_ricetta: str
-			):
-		
-		self.datiRispostaMEF = None
-		self.data = None
-		self.iup = None
-		self.iurp = None
-		self.cittadino = {
+    def __init__(
+            self,
+            codice_fiscale: str,
+            id_ricetta: str
+            ):
+        
+        self.datiRispostaMEF = None
+        self.data = None
+        self.iup = None
+        self.iurp = None
+        self.cittadino = {
             "codiceFiscale": codice_fiscale
         }
-		self.emessaIl = None
-		self.scadenzaIl = None
-		self.tipo = None
-		self.modulo = { 
+        self.emessaIl = None
+        self.scadenzaIl = None
+        self.tipo = None
+        self.modulo = { 
             "id": id_ricetta,
             "tipo": None
         }
-		self.flagRe = None
-		self.priorita = None
-		self.urgenza = None
-		self.tipoPrestazione = None
-		self.stato = {
+        self.flagRe = None
+        self.priorita = None
+        self.urgenza = None
+        self.tipoPrestazione = None
+        self.stato = {
             "codice": None,
             "descrizione": None,
             "data": None
         }
-		self.quesitoDiagnostico = {
+        self.quesitoDiagnostico = {
             "codice": None,
             "descrizione": None,
             "id": None,
             "operatoreLogico": None
         }
-		self.note = None
-		self.esenzione = {
+        self.note = None
+        self.esenzione = {
             "cdNazionale": None,
             "cdStampato": None,
             "codice": None,
             "descrizione": None
         }
-		self.flagEsenzionePatologia = None
-		self.flagAltreEsenzioni = None
-		self.flagSuggerita = None
-		self.brancaSpecialistica = None
-		self.provenienzaPrescrizione = None
-		self.prescrittore = {
+        self.flagEsenzionePatologia = None
+        self.flagAltreEsenzioni = None
+        self.flagSuggerita = None
+        self.brancaSpecialistica = None
+        self.provenienzaPrescrizione = None
+        self.prescrittore = {
             "codiceFiscale": None,
             "codiceRegionale": None,
             "nome": None,
             "cognome": None
         }
-		self.nrPrestazioni = None
-		self.prestazioni = []
-		self.appuntamenti = {
+        self.nrPrestazioni = None
+        self.prestazioni = []
+        self.appuntamenti = {
             "singoli": [],
             "combinati": [],
             "associati": [],
             "rpDifferite": []
         }
+        self.appuntamentiUnificati = None
+        self.daSbloccare = False
 
 @dataclass
 class Appointment:
@@ -113,7 +115,7 @@ class Appointment:
             agenda: dict,
             infoNote: dict,
             infoNotePreparazione: dict,
-            indoLuogoPresentazione: dict,
+            infoLuogoPresentazione: dict,
             infoMemorandum: dict,
             infoNoteDisdettaPrenotazione: dict,
             infoConsensoInformato: dict,
@@ -148,7 +150,7 @@ class Appointment:
         self.agenda = agenda
         self.infoNote = infoNote
         self.infoNotePreparazione = infoNotePreparazione
-        self.indoLuogoPresentazione = indoLuogoPresentazione
+        self.infoLuogoPresentazione = infoLuogoPresentazione
         self.infoMemorandum = infoMemorandum
         self.infoNoteDisdettaPrenotazione = infoNoteDisdettaPrenotazione
         self.infoConsensoInformato = infoConsensoInformato

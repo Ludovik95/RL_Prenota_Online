@@ -1,4 +1,5 @@
 from client import Client
+import client
 from objects import Patient, Prescription, Appointment
 import argparse
 
@@ -6,18 +7,16 @@ def main(args):
 
     client = Client(debug=args.debug)
 
-    codice_fiscale = input("Inserisci il codice fiscale: ")
+    codice_fiscale = input("Inserisci il codice fiscale: ").upper()
     codice_tessera = input("Inserisci le ultime 5 cifre della tessera sanitaria: ")
-    prescription_n = input("Inserisci il codice della ricetta: ")
-    provincia = input("Inserisci la provincia dove cercare l'appuntamento: ")
-
- 
-    prescription = Prescription(codice_fiscale, prescription_n)
+    id_ricetta = input("Inserisci il codice della ricetta: ").upper()
+    provincia = input("Inserisci la provincia dove cercare l'appuntamento: ").upper()
 
     patient = client.login(codice_fiscale, codice_tessera)
-    client.get_appointment(patient.codice_fiscale, prescription.modulo["id"])
-    client.get_prescription(patient.codice_fiscale, prescription.modulo["id"])
-    client.get_availability(patient.codice_fiscale, prescription, provincia)
+    current_appointment = client.get_appointment(patient.codice_fiscale, id_ricetta)
+    prescription = client.get_prescription(patient.codice_fiscale, id_ricetta)
+
+    client.get_availability(patient, prescription, provincia)
 
 
 
