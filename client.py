@@ -203,17 +203,15 @@ class Client:
 
     def get_payment(
         self,
-        codice_fiscale: str,
-        iup: str,
-        iurp: str):
+        appointment: Appointment):
 
         result = self._send_request(
             self._generate_request_data(
                 destination = "pgpcitt_ricerca_pagamento",
                 arguments = {
-                    "codiceFiscale": codice_fiscale,
-                    "iup": iup,
-                    "iurp": iurp
+                    "codiceFiscale": appointment.cittadino["codice_fiscale"],
+                    "iup": appointment.iup,
+                    "iurp": appointment.iurp
                 }
             )
         )
