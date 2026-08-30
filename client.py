@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
 import logging
+from typing import Optional
 from curl_cffi import requests
 
 from objects import Patient, Prescription, Appointment
@@ -41,7 +42,7 @@ class Client:
     def login(
         self,
         codice_fiscale: str,
-        codice_tessera: str):
+        codice_tessera: str) -> Optional[Patient]:
 
         result = self._send_request(
             self._generate_request_data(
@@ -59,14 +60,7 @@ class Client:
 
         patient_data = result.get("cittadino")
         if patient_data:
-            patient = Patient(codice_fiscale, codice_tessera)
-            patient.cognome = patient_data.get("cognome")
-            patient.nome = patient_data.get("nome")
-            patient.sesso = patient_data.get("sesso")
-            patient.nascita = patient_data.get("nascita")
-            patient.recapiti["telefono"] = patient_data.get("telefono")
-            patient.recapiti["cellulare"] = patient_data.get("cellulare")
-            patient.recapiti["email"] = patient_data.get("email")
+            patient = Patient.from_dict(patient_data)
             logging.debug(f"Logged in successfully for patient: {patient.nome} {patient.cognome}")
             return patient
         else:
@@ -76,7 +70,7 @@ class Client:
     def get_appointment(
         self,
         codice_fiscale: str,
-        id_ricetta: str):
+        id_ricetta: str) -> Optional[Appointment]:
 
         result = self._send_request(
             self._generate_request_data(
@@ -94,43 +88,9 @@ class Client:
             )
         )
 
-        if result:
-            appointment = Appointment(
-                uuid=result.get("uuid"),
-                idAppuntamento=result.get("idAppuntamento"),
-                iup=result.get("iup"),
-                iurp=result.get("iurp"),
-                ipCup=result.get("ipCup"),
-                azienda=result.get("azienda"),
-                data=result.get("data"),
-                prestazione=result.get("prestazione"),
-                differita=result.get("differita"),
-                modulo=result.get("modulo"),
-                associazione=result.get("associazione"),
-                cittadino=result.get("cittadino"),
-                prenotatoIl=result.get("prenotatoIl"),
-                registratoIl=result.get("registratoIl"),
-                modificatoIl=result.get("modificatoIl"),
-                annullatoIl=result.get("annullatoIl"),
-                noteAnnullamento=result.get("noteAnnullamento"),
-                stato=result.get("stato"),
-                tipo=result.get("tipo"),
-                unitaErogante=result.get("unitaErogante"),
-                unitaErogatrice=result.get("unitaErogatrice"),
-                agenda=result.get("agenda"),
-                infoNote=result.get("infoNote"),
-                infoNotePreparazione=result.get("infoNotePreparazione"),
-                infoLuogoPresentazione=result.get("infoLuogoPresentazione"),
-                infoMemorandum=result.get("infoMemorandum"),
-                infoNoteDisdettaPrenotazione=result.get("infoNoteDisdettaPrenotazione"),
-                infoConsensoInformato=result.get("infoConsensoInformato"),
-                infoMezzi=result.get("infoMezzi"),
-                cicli=result.get("cicli"),
-                quesitoDiagnostico=result.get("quesitoDiagnostico"),
-                regimeErogazione=result.get("regimeErogazione"),
-                risorsa=result.get("risorsa"),
-                tariffaLp=result.get("tariffaLp")
-            )
+        appointment_list = result.get("appuntamenti").get("singoli")
+        if appointment_list:
+            appointment = Appointment.from_dict(appointment_list[0])
             return appointment
 
         return None
@@ -139,7 +99,7 @@ class Client:
     def get_prescription(
         self,
         codice_fiscale: str,
-        id_ricetta: str):
+        id_ricetta: str) -> Optional[Prescription]:
 
         result = self._send_request(
             self._generate_request_data(
@@ -161,35 +121,7 @@ class Client:
 
         if result:
             ricetta = result.get("ricette")[0]
-            if ricetta:
-                prescription = Prescription(codice_fiscale, id_ricetta)
-                prescription.datiRispostaMEF = ricetta.get("datiRispostaMEF")
-                prescription.data = ricetta.get("data")
-                prescription.iup = ricetta.get("iup")
-                prescription.iurp = ricetta.get("iurp")
-                prescription.cittadino = ricetta.get("cittadino")
-                prescription.emessaIl = ricetta.get("emessaIl")
-                prescription.scadenzaIl = ricetta.get("scadenzaIl")
-                prescription.tipo = ricetta.get("tipo")
-                prescription.modulo = ricetta.get("modulo")
-                prescription.flagRe = ricetta.get("flagRe")
-                prescription.priorita = ricetta.get("priorita")
-                prescription.urgenza = ricetta.get("urgenza")
-                prescription.tipoPrestazione = ricetta.get("tipoPrestazione")
-                prescription.stato = ricetta.get("stato")
-                prescription.quesitoDiagnostico = ricetta.get("quesitoDiagnostico")
-                prescription.note = ricetta.get("note")
-                prescription.esenzione = ricetta.get("esenzione")
-                prescription.flagEsenzionePatologia = ricetta.get("flagEsenzionePatologia")
-                prescription.flagAltreEsenzioni = ricetta.get("flagAltreEsenzioni")
-                prescription.flagSuggerita = ricetta.get("flagSuggerita")
-                prescription.brancaSpecialistica = ricetta.get("brancaSpecialistica")
-                prescription.provenienzaPrescrizione = ricetta.get("provenienzaPrescrizione")
-                prescription.prescrittore = ricetta.get("prescrittore")
-                prescription.nrPrestazioni = ricetta.get("nrPrestazioni")
-                prescription.prestazioni = ricetta.get("prestazioni")
-                prescription.appuntamenti = ricetta.get("appuntamenti")
-
+            prescription = Prescription.from_dict(ricetta) if ricetta else None
             return prescription
         
         return None
@@ -203,7 +135,7 @@ class Client:
 
     def get_payment(
         self,
-        appointment: Appointment):
+        appointment: Appointment) -> Optional[dict]:
 
         result = self._send_request(
             self._generate_request_data(
@@ -223,7 +155,7 @@ class Client:
         self,
         patient: Patient,
         prescription: Prescription,
-        provincia: str):
+        provincia: str) -> list[dict]:
 
         for prov in self.province_data:
             if prov.get("descrizione") == provincia.upper():
@@ -237,16 +169,16 @@ class Client:
             self._generate_request_data(
                 destination = "pgpcitt_ricerca_disponibilita",
                 arguments = {
-                    "codiceFiscale": patient.codice_fiscale,
+                    "codiceFiscale": patient.codiceFiscale,
                     "zona": zona,
                     "ricetta": prescription.__dict__,
                     "tipoPrestazione": "Z",
                     "presidi": [],
                     "aziende": [],
                     "recapiti": {
-                        "telefono": patient.recapiti["telefono"],
-                        "cellulare": patient.recapiti["cellulare"],
-                        "email": patient.recapiti["email"]
+                        "telefono": patient.telefono,
+                        "cellulare": patient.cellulare,
+                        "email": patient.email
                     },
                     "vincoliTemporali": {
                         "dal": today,
@@ -274,7 +206,7 @@ class Client:
             )
         )
 
-        return result
+        return result.get("singole")
 
 
     def _get_token(self):

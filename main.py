@@ -7,16 +7,27 @@ def main(args):
 
     client = Client(debug=args.debug)
 
-    codice_fiscale = input("Inserisci il codice fiscale: ").upper()
-    codice_tessera = input("Inserisci le ultime 5 cifre della tessera sanitaria: ")
+    codiceFiscale = input("Inserisci il codice fiscale: ").upper()
+    crs = input("Inserisci le ultime 5 cifre della tessera sanitaria: ")
     id_ricetta = input("Inserisci il codice della ricetta: ").upper()
     provincia = input("Inserisci la provincia dove cercare l'appuntamento: ").upper()
 
-    patient = client.login(codice_fiscale, codice_tessera)
-    current_appointment = client.get_appointment(patient.codice_fiscale, id_ricetta)
-    prescription = client.get_prescription(patient.codice_fiscale, id_ricetta)
+    patient = client.login(codiceFiscale, crs)
+    if not patient:
+        print("Errore durante il login")
+        return
 
-    client.get_availability(patient, prescription, provincia)
+    current_appointment = client.get_appointment(patient.codiceFiscale, id_ricetta)
+    prescription = client.get_prescription(patient.codiceFiscale, id_ricetta)
+
+    appointment_list = client.get_availability(patient, prescription, provincia)
+    appointment_list = sorted(appointment_list, key=lambda x: x["appuntamento"]["data"])
+    new_appointment = Appointment.from_dict(appointment_list[0]["appuntamento"])
+    if new_appointment.get_data() < current_appointment.get_data():
+        print(f"Nuovo appuntamento disponibile: {new_appointment.get_data()}")
+        print(f"Presso: {new_appointment.unitaErogante["presidio"]["descrizione"]}")
+        print(f"Prenotazione attuale: {current_appointment.get_data()}")
+
 
 
 
