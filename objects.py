@@ -141,40 +141,221 @@ class Prescription:
 @dataclass
 class Appointment:
 
-    uuid: str
-    idAppuntamento: str
-    iup: str
-    iurp: str
-    ipCup: str
-    azienda: dict
-    data: str
-    prestazione: dict
-    differita: bool
-    modulo: str
-    associazione: str
-    cittadino: dict
-    prenotatoIl: str
-    registratoIl: str
-    modificatoIl: str
-    annullatoIl: str
-    noteAnnullamento: str
-    stato: str
-    tipo: str
-    unitaErogante: dict
-    unitaErogatrice: dict
-    agenda: dict
-    infoNote: dict
-    infoNotePreparazione: dict
-    infoLuogoPresentazione: dict
-    infoMemorandum: dict
-    infoNoteDisdettaPrenotazione: dict
-    infoConsensoInformato: dict
-    infoMezzi: dict
-    cicli: list
-    quesitoDiagnostico: dict
-    regimeErogazione: str
-    risorsa: str
-    tariffaLp: str
+    uuid: str = None
+    idAppuntamento: str = None
+    iup: str = None
+    iurp: str = None
+    modulo: str = None
+    associazione: str = None
+    ipCup: str = None
+    data: str = None
+    cittadino: dict = field(default_factory=lambda: {
+        "codiceFiscale": None,
+        "codiceSanitario": None,
+        "nome": None,
+        "cognome": None,
+        "sesso": None,
+        "nascita": None,
+        "localita": None,
+        "residenza": None,
+        "indirizzo": None,
+        "tel": None,
+        "sms": None,
+        "email": None
+    })
+    azienda: dict = field(default_factory=lambda: {
+        "id": None,
+        "codice": None,
+        "descrizione": None,
+        "area": None,
+        "email": None,
+        "sito": None,
+        "flag": {
+            "prioritaB": None,
+            "differita": None,
+            "unitaPrenotante": None,
+            "differitaVisibile": None,
+            "abilitataPagamento": None
+        },
+        "infoPrenotazione": {
+            "telefono": None,
+            "orari": None
+        }
+    })
+    prestazione: dict = field(default_factory=lambda: {
+        "codice": None,
+        "descrizione": None,
+        "codiceDistretto": None,
+        "codiceMetodica": None,
+        "flagExAsl": None,
+        "flagEsameLaboratorio": None,
+        "flagAmbulatoriale": None,
+        "flagVaccinoAntinfluenzale": None,
+        "flagTamponeRapido": None,
+        "flagTamponeCovid": None,
+        "codiceNomenclatoreNazionale": None,
+        "codiceNomenclatoreRegionale": None,
+        "codCatalogoPrescr": None
+    })
+    differita: bool = None
+    ricetta: dict = field(default_factory=lambda: {
+        "iup": None,
+        "iurp": None,
+        "cittadino": None,
+        "emessaIl": None,
+        "scadenzaIl": None,
+        "tipo": None,
+        "modulo": { "id": None, "tipo": None },
+        "flagRe": None,
+        "priorita": None,
+        "urgenza": None,
+        "tipoPrestazione": None,
+        "stato": None,
+        "quesitoDiagnostico": None,
+        "note": None,
+        "esenzione": None,
+        "flagEsenzionePatologia": None,
+        "flagAltreEsenzioni": None,
+        "flagSuggerita": None,
+        "brancaSpecialistica": None,
+        "provenienzaPrescrizione": None,
+        "prescrittore": None,
+        "nrPrestazioni": None,
+        "prestazioni": [],
+        "prestazioniPrenotate": [],
+        "datiRispostaMEF": None,
+        "appuntamenti": None,
+        "appuntamentiUnificati": [],
+        "daSbloccare": False
+    })
+    prenotatoIl: str = None
+    registratoIl: str = None
+    modificatoIl: str = None
+    annullatoIl: str = None
+    noteAnnullamento: str = None
+    stato: str = None
+    tipo: str = None
+    unitaErogante: dict = field(default_factory=lambda: {
+        "codice": None,
+        "descrizione": None,
+        "telefono": None,
+        "puntoIndirizzo": { "localita": None, "indirizzo": None },
+        "unitaPrenotante": {
+          "codice": None,
+          "descrizione": None,
+          "azienda": {
+            "id": None,
+            "codice": None,
+            "descrizione": None,
+            "area": None,
+            "email": None,
+            "sito": None,
+            "flag": None,
+            "infoPrenotazione": None
+          },
+          "flag": { "inibizioneNre": None }
+        },
+        "presidio": {
+          "id": None,
+          "codice": None,
+          "descrizione": None,
+          "descrizioneEstesa": None,
+          "email": None,
+          "puntoIndirizzo": {
+            "localita": {
+              "codice": None,
+              "descrizione": None,
+              "cap": None,
+              "siglaProvincia": None
+            },
+            "indirizzo": {
+              "toponimo": None,
+              "descrizione": None,
+              "civico": None,
+              "frazione": None,
+              "coordinate": {
+                "latitude": None,
+                "longitude": None
+              }
+            }
+          },
+          "azienda": {
+            "id": None,
+            "codice": None,
+            "descrizione": None,
+            "area": None,
+            "email": None,
+            "sito": None,
+            "flag": {
+              "prioritaB": None,
+              "differita": None,
+              "unitaPrenotante": None,
+              "differitaVisibile": None,
+              "abilitataPagamento": None
+            },
+            "infoPrenotazione": { "telefono": None, "orari": [] }
+          },
+          "telefono": None,
+          "orariApertura": None,
+          "periodoChiusura": None,
+          "distanza": None
+        },
+        "cdSissUe": None
+        })
+    unitaErogatrice: dict = field(default_factory=None)
+    agenda: dict = field(default_factory=lambda: {
+        "codice": None,
+        "descrizione": None,
+        "note": None,
+        "noteAggiuntive": None
+    })
+    infoNote: dict = field(default_factory=lambda: {
+        "testo": None,
+        "link": None
+    })
+    infoNotePreparazione: dict = field(default_factory=lambda: {
+        "testo": None,
+        "link": None
+    })
+    infoLuogoPresentazione: dict = field(default_factory=lambda: {
+        "testo": None,
+        "link": None
+    })
+    infoMemorandum: dict = field(default_factory=lambda: {
+        "testo": None,
+        "link": None
+    })
+    infoNoteDisdettaPrenotazione: dict = field(default_factory=lambda: {
+        "testo": None,
+        "link": None
+    })
+    infoConsensoInformato: dict = field(default_factory=lambda: {
+        "testo": None,
+        "link": None
+    })
+    infoMezzi: dict = field(default_factory=lambda: {
+        "testo": None,
+        "link": None
+    })
+    cicli: list = field(default_factory=[])
+    quesitoDiagnostico: dict = field(default_factory=lambda: {
+        "codice": None,
+        "descrizione": None
+    })
+    regimeErogazione: str = None
+    risorsa: dict = field(default_factory=lambda: {
+        "codice": "",
+        "descrizione": "",
+        "nome": "",
+        "cognome": "",
+        "azienda": None,
+        "idPresidio": None,
+        "idAgenda": "",
+        "agende": [],
+        "aziende": [],
+        "presidi": []
+    })
+    tariffaLp: str = None
 
     @classmethod
     def from_dict(cls, data: dict) -> Optional["Appointment"]:

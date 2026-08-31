@@ -1,5 +1,4 @@
 from client import Client
-import client
 from objects import Patient, Prescription, Appointment
 import argparse
 
@@ -20,14 +19,19 @@ def main(args):
     current_appointment = client.get_appointment(patient.codiceFiscale, id_ricetta)
     prescription = client.get_prescription(patient.codiceFiscale, id_ricetta)
 
-    appointment_list = client.get_availability(patient, prescription, provincia)
+    appointment_list, zona = client.get_availability(patient, prescription, provincia)
     appointment_list = sorted(appointment_list, key=lambda x: x["appuntamento"]["data"])
     new_appointment = Appointment.from_dict(appointment_list[0]["appuntamento"])
+    richiesta = appointment_list[0]["richiesta"]
+    primaDataProposta = appointment_list[0]["primaDataProposta"]
     if new_appointment.get_data() < current_appointment.get_data():
         print(f"Nuovo appuntamento disponibile: {new_appointment.get_data()}")
-        print(f"Presso: {new_appointment.unitaErogante["presidio"]["descrizione"]}")
+        print(f"presso: {new_appointment.unitaErogante["presidio"]["descrizione"]}")
         print(f"Prenotazione attuale: {current_appointment.get_data()}")
 
+        choice = input("Vuoi prenotare il nuovo appuntamento? [s/n]: ")
+        if choice.lower() == "s":
+            client.confirm_appointment(patient, new_appointment, prescription, zona, richiesta, primaDataProposta)
 
 
 

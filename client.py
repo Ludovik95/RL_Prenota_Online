@@ -155,7 +155,7 @@ class Client:
         self,
         patient: Patient,
         prescription: Prescription,
-        provincia: str) -> list[dict]:
+        provincia: str) -> tuple[list[dict], dict]:
 
         for prov in self.province_data:
             if prov.get("descrizione") == provincia.upper():
@@ -206,7 +206,55 @@ class Client:
             )
         )
 
-        return result.get("singole")
+        return result.get("singole"), zona
+
+
+    def confirm_appointment(
+        self, 
+        patient: Patient, 
+        appointment: Appointment,
+        prescription: Prescription,
+        zona: dict,
+        richiesta: str,
+        primaDataProposta: str) -> Optional[Appointment]:
+
+        prescription.appuntamenti = None
+        prescription.appuntamentiUnificati = None
+        
+        result = self._send_request(
+            self._generate_request_data(
+                destination = "pgpcitt_conferma_disponibilita",
+                arguments = {
+                    "codiceFiscale": patient.codiceFiscale,
+                    "disponibilita": [
+                        {
+                            "selezionabile": True,
+                            "appuntamento": appointment.__dict__,
+                            "prestazioni": [appointment.prestazione],
+                            "richiesta": richiesta,
+                            "primaDataProposta": primaDataProposta,
+                            "note": {
+                                "preparazione": { "isCollapsed": False },
+                                "agenda": { "isCollapsed": False },
+                                "giorniPreparazione": { "isCollapsed": True }
+                            }
+                        },
+                    ],
+                    "appuntamenti": [],
+                    "zona": zona,
+                    "ricetta": prescription.__dict__,
+                    "tipoPrestazione": "Z",
+                    "recapiti": {
+                        "telefono": patient.telefono,
+                        "cellulare": patient.cellulare,
+                        "email": patient.email
+                    }
+                }
+            )
+        )
+
+        if result:
+            return result.get("appuntamento")
 
 
     def _get_token(self):
